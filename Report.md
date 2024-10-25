@@ -150,6 +150,8 @@ $$
 \end{bmatrix}
 $$
 
+This rotation matrix is partially incorrect as can be seen, this matrix is almost the same as the one corresponding to image 1.png. However, the matrix should've been accomodated to account the 90 degree rotation. But the library function didn't consider that.
+
 #### Image: [./Images/4.png](./Images/4.png)
 **Rotation Matrix:**
 **Rotation Matrix:**
