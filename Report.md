@@ -1,6 +1,8 @@
 # AIM-836 3D Vision
 ## Assignment - 1
 ## Submitted by - Sankalp Kothari (IMT2021028)
+---
+---
 
 ### Task - 1. Camera Calibration
 ### 1.1 Data Preparation & Preprocessing
@@ -189,3 +191,8 @@ $$
 \end{bmatrix}
 $$
 
+---
+---
+
+### Task - 2. Homography Computation
+### 
