@@ -96,8 +96,11 @@ $$
 $$
 
 ### Rotation Matrices & Translation Vectors -
+
 #### Image: [./Images/1.png](./Images/1.png)
+
 **Rotation Matrix:**
+
 $$
 \begin{bmatrix}
 0.999 & 0.021 & 0.016 \\
@@ -105,7 +108,9 @@ $$
 -0.015 & -0.030 & 0.999 \\
 \end{bmatrix}
 $$
+
 **Translation Vector (tvec):**
+
 $$
 \begin{bmatrix}
 -2.928 \\
@@ -115,8 +120,9 @@ $$
 $$
 
 #### Image: [./Images/2.png](./Images/2.png)
+
 **Rotation Matrix:**
-**Rotation Matrix:**
+
 $$
 \begin{bmatrix}
 0.999 & 0.021 & 0.016 \\
@@ -124,7 +130,9 @@ $$
 -0.015 & -0.030 & 0.999 \\
 \end{bmatrix}
 $$
+
 **Translation Vector (tvec):**
+
 $$
 \begin{bmatrix}
 -2.928 \\
@@ -134,8 +142,9 @@ $$
 $$
 
 #### Image: [./Images/3.png](./Images/3.png)
+
 **Rotation Matrix:**
-**Rotation Matrix:**
+
 $$
 \begin{bmatrix}
 0.999 & 0.010 & 0.010 \\
@@ -143,7 +152,9 @@ $$
 -0.010 & -0.007 & 1.000 \\
 \end{bmatrix}
 $$
+
 **Translation Vector (tvec):**
+
 $$
 \begin{bmatrix}
 -3.355 \\
@@ -155,8 +166,9 @@ $$
 This rotation matrix is partially incorrect as can be seen, this matrix is almost the same as the one corresponding to image 1.png. However, the matrix should've been accomodated to account the 90 degree rotation. But the library function didn't consider that.
 
 #### Image: [./Images/4.png](./Images/4.png)
+
 **Rotation Matrix:**
-**Rotation Matrix:**
+
 $$
 \begin{bmatrix}
 0.815 & 0.579 & 0.008 \\
@@ -164,7 +176,9 @@ $$
 0.005 & -0.020 & 1.000 \\
 \end{bmatrix}
 $$
+
 **Translation Vector (tvec):**
+
 $$
 \begin{bmatrix}
 -4.171 \\
@@ -174,7 +188,9 @@ $$
 $$
 
 #### Image: [./Images/6.png](./Images/6.png)
+
 **Rotation Matrix:**
+
 $$
 \begin{bmatrix}
 0.964 & -0.264 & 0.021 \\
@@ -182,7 +198,9 @@ $$
 -0.022 & -0.000 & 1.000 \\
 \end{bmatrix}
 $$
+
 **Translation Vector (tvec):**
+
 $$
 \begin{bmatrix}
 -1.896 \\
@@ -195,4 +213,109 @@ $$
 ---
 
 ### Task - 2. Homography Computation
-### 
+### 2.1 Homography Computation using Chessboard
+
+I use the chessboard (which is a 2D object) to compute the homographies between the following 2 images.
+<table>
+  <tr>
+    <td><img src="./Homography Computation/Chessboard/Chessboard/1.png" alt="Image 1" width="200"/></td>
+    <td><img src="./Homography Computation/Chessboard/Chessboard/2.png" alt="Image 2" width="200"/></td>
+  </tr>
+</table>
+
+I have used the following 3 methods as my experiments - 
+
+1. Keypoint detection using ORB detector and matching using KNN Matcher
+2. Keypoint detection using ORB detector and matching using FLANN Matcher
+3. Keypoint detection using Corner detector method and manual matching
+
+All these methods were followed by Homography computation using RANSAC followed by warping the query image and comparing it to the original test image to see the results.
+
+The details for each method are as follows - 
+
+### 2.1.1 Keypoint detection using ORB detector and matching using KNN Matcher
+I started by detecting keypoints and creating matches using the ORB detector, followed by Brute Force KNN matching to align the keypoints.
+
+#### **Keypoint Detection with ORB**  
+For detecting keypoints, I used the ORB detector, which combines the FAST keypoint detector with the BRIEF descriptor. ORB uses FAST to locate initial keypoints, and then the Harris Corner Measure selects the top N points for better accuracy. ORB also includes rotational invariance for keypoints. This method is faster than SIFT and SURF and often gives better results than SURF. The figure shows the keypoints detected using ORB.
+
+![Keypoints detected using ORB](./Homography%20Computation/Chessboard/Keypoints_BF.png)
+
+#### **Keypoint Matching with KNN**  
+For matching keypoints between images, I applied the KNN approach using a Brute-Force (BF) matcher with the L2 norm. I set it to find the two nearest matches for each keypoint and used Lowe's ratio test to keep only the reliable matches, filtering out ambiguous ones. The matches produced are shown below, where some incorrect matches are visible, indicating a higher chance of inaccuracies in the homography matrix. This is explored further in another section. Automated methods can struggle with chessboard images since the repeating patterns often cause similar descriptors for multiple points, whihc leads to possible mismatches.
+
+![Keypoints matched using BF](./Homography%20Computation/Chessboard/Matching_ORB_BF.png)
+
+#### **Homography Computation and Warping results**
+
+**Homography Matrix:**
+$$
+H = 
+\begin{bmatrix}
+0.275 & -0.618 & 225.048 \\
+0.436 & -0.968 & 352.046 \\
+0.001 & -0.003 & 1.000 \\
+\end{bmatrix}
+$$
+
+**Warping Results:**
+
+![Warping result using ORB and KNN](./Homography%20Computation/Chessboard/Final_BF.png)
+
+### 2.1.2 Keypoint detection using ORB detector and matching using FLANN Matcher
+
+For this approach, I used the same ORB detector as before, so the keypoints identified are identical to the previous method.
+
+**Keypoint Matching with FLANN Matcher**  
+The FLANN (Fast Library for Approximate Nearest Neighbors) is a set of algorithms designed for efficient nearest-neighbor searches, performing faster than the Brute Force Matcher. The matching results are shown in the image below. 
+
+As seen, the number of incorrect matches is reduced, which leads to a more reliable homography.
+
+![Keypoints matched using FLANN](./Homography%20Computation/Chessboard/Matching_ORB.png)
+
+#### **Homography Computation and Warping results**
+
+**Homography Matrix:**
+$$
+H = 
+\begin{bmatrix}
+0.687 & 0.477 & -68.733 \\
+-0.445 & 0.694 & 178.859 \\
+0.000 & 0.000 & 1.000 \\
+\end{bmatrix}
+$$
+
+**Warping Results:**
+
+![Warping result using ORB and FLANN](./Homography%20Computation/Chessboard/Final.png)
+
+### Keypoint detection using Corner detector method and manual matching
+
+For this method, I used the `findChessBoardCornersSB` function (previously used for camera calibration) to detect the chessboard corners, which serve as keypoints. These corners provide natural correspondences between each detected corner.
+
+These matches are directly passed to the function to compute the homography, similar to manually selecting and matching keypoints. This approach results in the highest-quality homography and warping. The detected corners, which act as the keypoints, are shown below.
+
+<table>
+  <tr>
+    <td><img src="./Homography Computation/Chessboard/1-corners.png" alt="Image 1" width="200"/></td>
+    <td><img src="./Homography Computation/Chessboard/2-corners.png" alt="Image 2" width="200"/></td>
+  </tr>
+</table>
+
+**Homography Matrix:**
+$$
+H = 
+\begin{bmatrix}
+0.682 & 0.468 & -66.663 \\
+-0.445 & 0.686 & 179.203 \\
+0.000 & 0.000 & 1.000 \\
+\end{bmatrix}
+$$
+
+As we can see, the values in this matrix are fairly close to the values in the Homography Matrix for FLANN matcher and the subsequent warping results will also be very similar as we can see below.
+
+**Warping Results:**
+
+![Warping result using ORB and KNN](./Homography%20Computation/Chessboard/Final_Chessboard_Corners.png)
+
+### 2.2 Homography Computation using Rubik's Cube
