@@ -249,6 +249,7 @@ For matching keypoints between images, I applied the KNN approach using a Brute-
 #### **Homography Computation and Warping results**
 
 **Homography Matrix:**
+
 $$
 H = 
 \begin{bmatrix}
@@ -276,6 +277,7 @@ As seen, the number of incorrect matches is reduced, which leads to a more relia
 #### **Homography Computation and Warping results**
 
 **Homography Matrix:**
+
 $$
 H = 
 \begin{bmatrix}
@@ -303,6 +305,7 @@ These matches are directly passed to the function to compute the homography, sim
 </table>
 
 **Homography Matrix:**
+
 $$
 H = 
 \begin{bmatrix}
