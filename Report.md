@@ -242,7 +242,7 @@ For detecting keypoints, I used the ORB detector, which combines the FAST keypoi
 ![Keypoints detected using ORB](./Homography%20Computation/Chessboard/Keypoints_BF.png)
 
 #### **Keypoint Matching with KNN**  
-For matching keypoints between images, I applied the KNN approach using a Brute-Force (BF) matcher with the L2 norm. I set it to find the two nearest matches for each keypoint and used Lowe's ratio test to keep only the reliable matches, filtering out ambiguous ones. The matches produced are shown below, where some incorrect matches are visible, indicating a higher chance of inaccuracies in the homography matrix. This is explored further in another section. Automated methods can struggle with chessboard images since the repeating patterns often cause similar descriptors for multiple points, whihc leads to possible mismatches.
+For matching keypoints between images, I applied the KNN approach using a Brute-Force (BF) matcher with the L2 norm. I set it to find the two nearest matches for each keypoint and used Lowe's ratio test to keep only the reliable matches, filtering out ambiguous ones. The matches produced are shown below, where some incorrect matches are visible, indicating a higher chance of inaccuracies in the homography matrix. This is explored further in another section. Automated methods can struggle with chessboard images since the repeating patterns often cause similar descriptors for multiple points, which leads to possible mismatches.
 
 ![Keypoints matched using BF](./Homography%20Computation/Chessboard/Matching_ORB_BF.png)
 
@@ -319,6 +319,126 @@ As we can see, the values in this matrix are fairly close to the values in the H
 
 **Warping Results:**
 
-![Warping result using ORB and KNN](./Homography%20Computation/Chessboard/Final_Chessboard_Corners.png)
+![Warping result using Manual matching](./Homography%20Computation/Chessboard/Final_Chessboard_Corners.png)
 
 ### 2.2 Homography Computation using Rubik's Cube
+I applied similar methods using a Rubik’s Cube instead of a chessboard. Here, I aim to explore how the planarity of selected keypoints influences the quality of the homography and compare this to results where keypoints and matches are manually identified.
+
+Images used - 
+<table>
+  <tr>
+    <td align="center"><img src="./Homography Computation/Rubiks_Cube/Cube/1.png" alt="Image 1" width="200"/><br>Query Image</td>
+    <td align="center"><img src="./Homography Computation/Rubiks_Cube/Cube/3.png" alt="Image 2" width="200"/><br>Image to be transformed</td>
+  </tr>
+</table>
+
+Once again, similar to the chessboard, I have used the following 3 methods as my experiments - 
+
+1. Keypoint detection using ORB detector and matching using KNN Matcher
+2. Keypoint detection using ORB detector and matching using FLANN Matcher
+3. Keypoint detection using Manual Key point Identification and Matching
+
+All these methods were followed by Homography computation using RANSAC followed by warping the query image and comparing it to the original test image to see the results.
+
+For conciseness of the report, I only include the results for each experiment.
+
+### 2.2.1 Keypoint detection using ORB detector and matching using KNN Matcher
+
+![Key points using ORB and KNN](./Homography%20Computation/Rubiks_Cube/Keypoints_BF.png)
+
+![Key points matching using ORB and KNN](./Homography%20Computation/Rubiks_Cube/Matching_ORB_BF.png)
+
+**Homography Matrix:**
+
+$$
+H = 
+\begin{bmatrix}
+-1.005 & -0.949 & 741.266 \\
+0.806 & -0.234 & 186.330 \\
+-0.001 & 0.002 & 1.000 \\
+\end{bmatrix}
+$$
+
+**Warping Results**
+
+![Warping result using ORB and KNN](./Homography%20Computation/Rubiks_Cube/Final_BF.png)
+
+### 2.2.2 Keypoint detection using ORB detector and matching using FLANN Matcher
+
+![Key points using ORB and KNN](./Homography%20Computation/Rubiks_Cube/Keypoints.png)
+![Key points matching using ORB and KNN](./Homography%20Computation/Rubiks_Cube/Matching_ORB.png)
+
+**Homography Matrix:**
+
+$$
+H = 
+\begin{bmatrix}
+-1.032 & -1.014 & 812.680 \\
+1.061 & -0.294 & 198.687 \\
+-0.001 & 0.003 & 1.000 \\
+\end{bmatrix}
+$$
+
+**Warping Results**
+
+![Warping result using ORB and KNN](./Homography%20Computation/Rubiks_Cube/Final.png)
+
+The results for these 2 experiments are nearly the same, as can be inferred from the Homographies computed.
+
+### 2.2.3 Keypoint detection using Manual Key point Identification and Matching
+
+I used GIMP to identify the 7 corner points of the cube visible in these 2 images and using that matching, homography is computed.
+
+![Key points using ORB and KNN](./Homography%20Computation/Rubiks_Cube/images_with_points.png)
+
+**Homography Matrix:**
+
+$$
+H = 
+\begin{bmatrix}
+-0.545 & -0.933 & 563.187 \\
+0.884 & -0.631 & 190.381 \\
+0.000 & -0.000 & 1.000 \\
+\end{bmatrix}
+$$
+
+**Warping Results**
+
+![Warping result using ORB and KNN](./Homography%20Computation/Rubiks_Cube/Final_Cube_Corners.png)
+
+Manual key point identification and matching, results in a nearly perfect warping.
+
+We can say that for non-planar objects, homography is better computed if key-point matching is done manually.
+
+---
+---
+
+## Observations and Results
+
+### Camera Calibration Observations
+
+1. Initially, I used the raw chessboard images without preprocessing, but the `findChessboardCornersSB` function couldn’t detect the chessboard due to glare and poor lighting in several images.
+2. To improve detection, I applied thresholding to make the chessboard corners more prominent, which worked well except for one image where lighting still posed issues.
+3. Excluding the problematic image significantly reduced the reprojection error, resulting in better calibration accuracy. The inconsistent chessboard pattern in that image affected overall calibration.
+
+### Challenges with Homography Computation and Keypoint Matching
+
+1. Using the BF Matcher for feature matching led to poor homography due to incorrect matches, causing the RANSAC algorithm to struggle with finding the best transformation.
+2. Switching to the FLANN-based Matcher reduced incorrect matches, allowing RANSAC to handle outliers more effectively and improve match accuracy.
+3. The most accurate homography came from directly using `findChessboardCornersSB`-detected points, equivalent to manually selecting keypoints.
+4. While this analysis primarily highlights the effect of matching errors, the influence of non-planar keypoints on homography accuracy hasn’t been fully explored here.
+
+### Non-Planarity & Homography Accuracy
+
+1. The previous section addressed the impact of incorrect matches. Here, I investigate how keypoint non-planarity affects homography computation.
+2. While keypoint detection and matching were fairly accurate, homography results from computed points lacked precision, indicating that non-planarity can affect the warp.
+3. Manually selecting keypoints from the visible corners of a Rubik’s cube produced a nearly perfect homography, allowing the cube’s rotation and alignment to be accurately represented.
+4. This confirms that non-planarity may reduce homography quality compared to manually selected planar points.
+
+
+## Relevant Links
+
+- [GitHub repository (code)](https://github.com/SankalpKothari0904/Camera_Calibration_and_Homography_Computation)
+- [OpenCV documentation for Camera Calibration](https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html)
+- [OpenCV documentation for Homography Computation](https://docs.opencv.org/4.x/d9/dab/tutorial_homography.html)
+- [Code for homography computation in Visual Recognition course](https://github.com/SSS-192858/VR_ImageProcessing)
